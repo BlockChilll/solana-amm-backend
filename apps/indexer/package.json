@@ -1,0 +1,33 @@
+{
+  "name": "solana-example",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "typegen": "squid-solana-typegen src/abi idl/solana_v2_amm.json idl/solana_v2_router.json",
+    "db:migrate": "squid-typeorm-migration apply",
+    "db:migration:generate": "squid-typeorm-migration generate",
+    "db:bootstrap": "docker-compose exec -T db psql -v ON_ERROR_STOP=1 -U postgres -d amm_indexer < db/bootstrap.sql",
+    "db:reset": "npm run build && docker-compose down -v && docker-compose up -d && until docker-compose exec -T db pg_isready -U postgres -d amm_indexer; do sleep 1; done && npm run db:migrate && npm run db:bootstrap",
+    "start": "node -r dotenv/config lib/main.js",
+    "api": "node -r dotenv/config lib/api.js"
+  },
+  "dependencies": {
+    "@subsquid/batch-processor": "^1.1.0",
+    "@subsquid/borsh": "^0.3.0",
+    "@subsquid/solana-objects": "^1.0.0",
+    "@subsquid/solana-stream": "^1.1.2",
+    "@subsquid/typeorm-migration": "^1.4.0",
+    "@subsquid/typeorm-store": "^1.9.1",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.12.7",
+    "pg": "^8.22.0",
+    "typeorm": "^0.3.31",
+    "typeorm-naming-strategies": "^4.1.0"
+  },
+  "devDependencies": {
+    "@subsquid/solana-typegen": "^0.9.1",
+    "@types/node": "^24.13.3",
+    "typescript": "~5.9.3"
+  }
+}
