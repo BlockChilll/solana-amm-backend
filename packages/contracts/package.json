@@ -1,0 +1,25 @@
+{
+  "name": "@amm/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./analytics": {
+      "types": "./dist/generated/analytics/analytics.d.ts",
+      "default": "./dist/generated/analytics/analytics.js"
+    },
+    "./schemas/amm-events": {
+      "types": "./dist/schemas/amm-events.schema.d.ts",
+      "default": "./dist/schemas/amm-events.schema.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
+}

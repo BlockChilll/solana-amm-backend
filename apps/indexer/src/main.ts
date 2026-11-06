@@ -12,7 +12,9 @@ import {
     LiquidityEvent,
     LiquidityEventType,
     SyncEvent,
+    OutboxEvent,
 } from './model/index.js'
+import {createOutboxEvent} from './outbox/create-outbox-event.js'
 
 const AMM_PROGRAM_ID =
     'HwVgAGBTdPvyXCyN5gRE2pun9BccbskyiRCnMboyeyns'
@@ -56,6 +58,7 @@ run(dataSource, database, async (ctx) => {
     const swapEvents: SwapEvent[] = []
     const liquidityEvents: LiquidityEvent[] = []
     const syncEvents: SyncEvent[] = []
+    const outboxEvents: OutboxEvent[] = []
 
     for (const block of ctx.blocks.map(augmentBlock)) {
         const slot = block.header.number
@@ -87,6 +90,12 @@ run(dataSource, database, async (ctx) => {
             const discriminator = hex.slice(0, 18)
             const id = `${txSignature}-${log.logIndex}`
 
+            const position = {
+                slot,
+                transactionIndex: log.transactionIndex,
+                logIndex: log.logIndex,
+            }
+
             if (discriminator === events.PoolCreated.d8) {
                 const data = events.PoolCreated.decode(hex)
 
@@ -101,6 +110,7 @@ run(dataSource, database, async (ctx) => {
                 event.mintLp = data.mintLp
 
                 poolCreatedEvents.push(event)
+                outboxEvents.push(createOutboxEvent(event, 'PoolCreated', position));
             }
 
             else if (discriminator === events.MintLiquidity.d8) {
@@ -119,6 +129,7 @@ run(dataSource, database, async (ctx) => {
                 event.liquidity = data.liquidity.toString()
 
                 liquidityEvents.push(event)
+                outboxEvents.push(createOutboxEvent(event, 'MintLiquidity', position))
             }
 
             else if (discriminator === events.BurnLiquidity.d8) {
@@ -137,6 +148,7 @@ run(dataSource, database, async (ctx) => {
                 event.liquidity = data.liquidity.toString()
 
                 liquidityEvents.push(event)
+                outboxEvents.push(createOutboxEvent(event, 'BurnLiquidity', position))
             }
 
             else if (discriminator === events.Swap.d8) {
@@ -155,6 +167,7 @@ run(dataSource, database, async (ctx) => {
                 event.amountBOut = data.amountBOut.toString()
 
                 swapEvents.push(event)
+                outboxEvents.push(createOutboxEvent(event, 'Swap', position))
             }
 
             else if (discriminator === events.Sync.d8) {
@@ -170,6 +183,7 @@ run(dataSource, database, async (ctx) => {
                 event.reserveB = data.reserveB.toString()
 
                 syncEvents.push(event)
+                outboxEvents.push(createOutboxEvent(event, 'Sync', position))
             }
         }
     }
@@ -183,11 +197,15 @@ run(dataSource, database, async (ctx) => {
     }
 
     if (swapEvents.length > 0) {
-        await ctx.store.insert(swapEvents)
+      await ctx.store.insert(swapEvents)
     }
 
     if (syncEvents.length > 0) {
         await ctx.store.insert(syncEvents)
+    }
+
+    if (outboxEvents.length > 0) {
+        await ctx.store.insert(outboxEvents)
     }
 
     const total =

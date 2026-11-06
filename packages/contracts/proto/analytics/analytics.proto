@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package analytics;
+
+service AnalyticsService {
+  rpc GetPoolStats(GetPoolStatsRequest) returns (GetPoolStatsResponse);
+}
+
+message GetPoolStatsRequest {
+  string pool_address = 1;
+}
+
+message GetPoolStatsResponse {
+  string pool_address = 1;
+  uint64 total_swaps = 2;
+}

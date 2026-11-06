@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "build:indexer": "npm run build -w apps/indexer"
+    "build:indexer": "npm run build -w apps/indexer",
+    "build:gateway": "npm run build -w apps/api-gateway",
+    "build:analytics": "npm run build -w apps/analytics-service",
+    "build:notifications": "npm run build -w apps/notification-service",
+    "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./packages/contracts/generated --ts_proto_opt=nestJs=true,addGrpcMetadata=true,forceLong=string,outputServices=default,importSuffix=.js --proto_path=./packages/contracts/proto analytics/analytics.proto"
   }
 }

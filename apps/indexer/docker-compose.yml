@@ -8,3 +8,8 @@ services:
     ports:
       - "${DB_PORT}:5432"
       # command: ["postgres", "-c", "log_statement=all"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
